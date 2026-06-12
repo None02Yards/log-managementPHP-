@@ -9,243 +9,293 @@ require_once dirname(__DIR__) . '/bootstrap/autoload.php';
 
 <head>
     <meta charset="UTF-8">
-    <title>Database Seeder</title>
+    <title>Operations Lab</title>
+
     <link rel="stylesheet" href="/css/seeder.css">
-    
 </head>
 
 <body>
 
-    <h2>🗄 Operations Lab</h2>
-
-<div class="container">
-
     <!-- HEADER -->
 
-<div class="page-header">
+    <header class="page-header">
 
-    <h2>🗄 Operations Lab</h2>
+        <h1>🗄 Operations Lab</h1>
 
-    <p>
-        Database seeding, incident simulation, and system observability toolkit
-    </p>
+        <p>
+            Database seeding, incident simulation, and observability toolkit
+        </p>
 
-</div>
+    </header>
 
-    <!-- TOP GRID -->
+    <!-- STATUS BAR -->
 
-    <div class="grid">
+    <section class="status-bar">
 
-        <section class="panel">
-            <h3>System Health</h3>
-            <div id="healthContent">
-                Loading...
+        <div class="status-card">
+            <span>ENV</span>
+            <strong>Development</strong>
+        </div>
+
+        <div class="status-card">
+            <span>DB</span>
+            <strong id="dbStatus">Connected</strong>
+        </div>
+
+        <div class="status-card">
+            <span>MODE</span>
+            <strong>Manual</strong>
+        </div>
+
+        <div class="status-card">
+            <span>API</span>
+            <strong id="apiStatus">Ready</strong>
+        </div>
+
+    </section>
+
+    <main class="container">
+
+        <!-- HEALTH + SNAPSHOT -->
+
+        <section class="grid-two">
+
+            <div class="panel">
+
+                <h3>System Health</h3>
+
+                <div id="healthContent">
+                    Loading...
+                </div>
+
             </div>
+
+            <div class="panel">
+
+                <h3>Database Snapshot</h3>
+
+                <div id="snapshotContent">
+                    Loading...
+                </div>
+
+            </div>
+
         </section>
 
+        <!-- ACTIONS -->
+
         <section class="panel">
-            <h3>Database Snapshot</h3>
-            <div id="snapshotContent">
-                Loading...
+
+            <div class="panel-header-row">
+
+                <h3>Seeder Actions</h3>
+
+                <div class="actions">
+
+                    <button id="seedBtn">
+                        🚀 Seed Database
+                    </button>
+
+                    <button id="clearConsoleBtn">
+                        🧹 Clear Console
+                    </button>
+
+                    <button onclick="location.href='/'">
+                        🏠 Home
+                    </button>
+
+                </div>
+
             </div>
+
         </section>
 
-    </div>
+        <!-- INCIDENTS -->
 
-    <!-- ACTIONS -->
+        <section class="panel">
 
-    <section class="panel">
+            <h3>Incident Generator</h3>
 
-        <h3>Seeder Actions</h3>
+            <div class="actions">
 
-        <div class="actions">
+                <select id="incidentType">
 
-            <button id="seedBtn">
-                🚀 Seed Database
-            </button>
+                    <option value="api_outage">
+                        API Outage
+                    </option>
 
-            <button id="clearConsoleBtn">
-                🧹 Clear Console
-            </button>
+                    <option value="db_failure">
+                        Database Failure
+                    </option>
 
-            <button onclick="location.href='/'">
-                🏠 Home
-            </button>
+                    <option value="auth_attack">
+                        Authentication Attack
+                    </option>
 
-        </div>
+                    <option value="memory_leak">
+                        Memory Leak
+                    </option>
 
-    </section>
+                    <option value="network_timeout">
+                        Network Timeout
+                    </option>
 
-    <!-- INCIDENTS -->
+                </select>
 
-    <section class="panel">
+                <button id="simulateBtn">
+                    Simulate Incident
+                </button>
 
-        <h3>Incident Generator</h3>
+            </div>
 
-        <div class="actions">
+        </section>
 
-            <select id="incidentType">
+        <!-- CONSOLE -->
 
-                <option value="api_outage">
-                    API Outage
-                </option>
+        <section class="panel console-panel">
 
-                <option value="db_failure">
-                    Database Failure
-                </option>
+            <h3>Live Console</h3>
 
-                <option value="auth_attack">
-                    Authentication Attack
-                </option>
+            <div class="log" id="log">
 
-                <option value="memory_leak">
-                    Memory Leak
-                </option>
+                <div class="console-line">
+                    Operations Lab ready...
+                </div>
 
-                <option value="network_timeout">
-                    Network Timeout
-                </option>
+            </div>
 
-            </select>
+        </section>
 
-            <button id="simulateBtn">
-                Simulate Incident
-            </button>
+        <!-- HISTORY -->
 
-        </div>
+        <section class="panel">
 
-    </section>
+            <h3>Seeder History</h3>
 
-    <!-- SIMULATOR -->
+            <div id="historyContent">
 
-    <section class="panel">
+                No history available.
 
-        <h3>Live Log Simulator</h3>
+            </div>
 
-        <div class="actions">
+        </section>
 
-            <input
-                type="number"
-                id="logRate"
-                value="5"
-                min="1"
-                max="100">
+        <!-- STATS -->
 
-            <button id="startSimulator">
-                ▶ Start
-            </button>
+        <section class="panel">
 
-            <button id="stopSimulator">
-                ⏹ Stop
-            </button>
+            <h3>Seeder Statistics</h3>
 
-        </div>
+            <div id="stats">
 
-    </section>
+                Waiting for seeding...
 
-    <!-- HISTORY -->
+            </div>
 
-    <section class="panel">
+        </section>
 
-        <h3>Seeder History</h3>
+    </main>
 
-        <div id="historyContent">
-            No history available
-        </div>
+    <script>
 
-    </section>
+        const API = "/api";
 
-    <!-- STATS -->
+        const logBox =
+            document.getElementById("log");
 
-    <section class="panel">
+        function log(message) {
 
-        <h3>Seeder Statistics</h3>
+            const div =
+                document.createElement("div");
 
-        <div id="stats">
-            Waiting for seeding...
-        </div>
+            div.className =
+                "console-line";
 
-    </section>
+            div.textContent =
+                message;
 
-    <!-- CONSOLE -->
+            logBox.appendChild(div);
 
-    <section class="panel">
+            logBox.scrollTop =
+                logBox.scrollHeight;
+        }
 
-        <h3>Live Console</h3>
+        function clearConsole() {
 
-        <div class="log" id="log"></div>
+            logBox.innerHTML = "";
 
-    </section>
+        }
 
-</div>
+        document
+            .getElementById("clearConsoleBtn")
+            .addEventListener(
+                "click",
+                clearConsole
+            );
 
-<script>
+        document
+            .getElementById("seedBtn")
+            .addEventListener(
+                "click",
+                async () => {
 
-const API = "/api";
+                    const btn =
+                        document.getElementById("seedBtn");
 
-const logBox = document.getElementById("log");
+                    btn.disabled = true;
 
-function log(message)
-{
-    const div = document.createElement("div");
+                    clearConsole();
 
-    div.textContent = message;
+                    log("══════════════════════════════════════");
+                    log("🚀 Seeder Started");
+                    log("══════════════════════════════════════");
 
-    logBox.appendChild(div);
+                    try {
 
-    logBox.scrollTop = logBox.scrollHeight;
-}
+                        const res =
+                            await fetch(
+                                API + "/seed",
+                                {
+                                    method: "POST"
+                                }
+                            );
 
-function clearConsole()
-{
-    logBox.innerHTML = "";
-}
+                        const data =
+                            await res.json();
 
-document
-    .getElementById("clearConsoleBtn")
-    .addEventListener("click", clearConsole);
+                        log("📝 Creating database and tables...");
+                        log("📥 Inserting sample logs...");
+                        log("────────────────────────────");
 
-document
-    .getElementById("seedBtn")
-    .addEventListener("click", async () =>
-{
-    const btn = document.getElementById("seedBtn");
+                        log("🟢 [INFO] Application started");
+                        log("🟢 [INFO] Database connected");
+                        log("🟡 [WARNING] Slow query detected");
+                        log("🔴 [ERROR] Failed API request");
+                        log("🔴 [CRITICAL] Unauthorized access");
 
-    btn.disabled = true;
+                        log("────────────────────────────");
+                        log("✅ Setup Complete");
 
-    log("🚀 Seeding started...");
+                        document
+                            .getElementById("stats")
+                            .innerHTML =
+                            `
+                            <strong>Inserted:</strong> ${data.result.inserted}<br>
+                            <strong>Failed:</strong> ${data.result.failed}
+                            `;
 
-    try
-    {
-        const res = await fetch(API + "/seed", {
-            method: "POST"
-        });
+                    } catch (e) {
 
-        const data = await res.json();
+                        log("❌ Error: " + e.message);
 
-        log("✅ Seeder completed");
+                    }
 
-        log("Inserted: " + data.result.inserted);
+                    btn.disabled = false;
 
-        log("Failed: " + data.result.failed);
+                }
+            );
 
-        document.getElementById("stats").innerHTML =
-            `<pre>${JSON.stringify(
-                data.result.stats || {},
-                null,
-                2
-            )}</pre>`;
-    }
-    catch(e)
-    {
-        log("❌ Error: " + e.message);
-    }
-
-    btn.disabled = false;
-});
-
-</script>
-
+    </script>
 
 </body>
 
