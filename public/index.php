@@ -1,4 +1,4 @@
-<!-- E:\centralized-log-management\public\index.php -->
+
 <?php
 /**
  * Application Entry Point
@@ -70,6 +70,7 @@ $router->post(
     'SeederController',
     'simulateIncident'
 );
+
 
 // Dispatch the request
 echo $router->dispatch();

@@ -10,7 +10,7 @@ class SeederController extends Controller
     public function run()
     {
         header('Content-Type: application/json');
-
+          $dataset = $_POST['dataset'] ?? 'demo_50';
         $seeder = new LogSeeder();
 
         // echo json_encode([
@@ -20,7 +20,7 @@ class SeederController extends Controller
 
         return $this->json([
             'success' => true,
-            'result' => $seeder->run()
+            'result' => $seeder->run($dataset)
         ]);
     }
 

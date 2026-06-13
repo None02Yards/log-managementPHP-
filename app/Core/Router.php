@@ -61,6 +61,10 @@ class Router
             $requestUri = '/';
         }
 
+
+            
+
+
         foreach ($this->routes as $route) {
 
             $pattern = $this->convertToRegex($route['route']);

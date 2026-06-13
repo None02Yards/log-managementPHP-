@@ -6,21 +6,30 @@ use App\Models\LogModel;
 
 class LogSeeder
 {
-    public function run(): array
+    public function run(string $dataset = 'demo_50'): array
     {
         $logModel = new LogModel();
 
-        $sampleLogs = [
-            [
-                'severity' => 'INFO',
-                'message' => 'Application started successfully',
-                'source' => 'app/bootstrap',
-                'context' => ['version' => '1.0.0'],
-                'tags' => ['startup']
-            ],
+        $datasetPath =
+            dirname(__DIR__, 2)
+            . '/storage/datasets/'
+            . $dataset
+            . '.php';
 
-            // ...rest of logs
-        ];
+        if (!file_exists($datasetPath)) {
+
+            return [
+                'inserted' => 0,
+                'failed' => 0,
+                'error' => "Dataset '{$dataset}' not found."
+            ];
+        }
+
+        $sampleLogs = require $datasetPath;
+        echo '<pre>';
+print_r($sampleLogs);
+echo '</pre>';
+exit;
 
         $inserted = 0;
         $failed = 0;
@@ -28,13 +37,23 @@ class LogSeeder
         foreach ($sampleLogs as $index => $logData) {
 
             $entry = [
+
                 'id' => uniqid('log_', true),
-                'timestamp' => date('Y-m-d H:i:s', strtotime("-{$index} minutes")),
+
+                'timestamp' => date(
+                    'Y-m-d H:i:s',
+                    strtotime("-{$index} minutes")
+                ),
+
                 'severity' => $logData['severity'],
+
                 'message' => $logData['message'],
+
                 'source' => $logData['source'],
-                'context' => $logData['context'],
-                'tags' => $logData['tags'],
+
+                'context' => $logData['context'] ?? [],
+
+                'tags' => $logData['tags'] ?? [],
             ];
 
             if ($logModel->insert($entry)) {
@@ -45,6 +64,7 @@ class LogSeeder
         }
 
         return [
+            'dataset' => $dataset,
             'inserted' => $inserted,
             'failed' => $failed,
             'stats' => $logModel->getStatistics(),
