@@ -26,10 +26,7 @@ class LogSeeder
         }
 
         $sampleLogs = require $datasetPath;
-        echo '<pre>';
-print_r($sampleLogs);
-echo '</pre>';
-exit;
+
 
         $inserted = 0;
         $failed = 0;
